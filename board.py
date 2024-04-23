@@ -2,7 +2,7 @@ class Connect4():
     def __init__(self, grid=[['_'] * 7 for x in range(6)]):
         self.grid = grid
         self.turn = 'R'
-        self.infinity = 100000000000000
+        self.infinity = 8
         
     def __str__(self):
         board = '\n 0 1 2 3 4 5 6\n'
@@ -56,16 +56,90 @@ class Connect4():
             else:
                 print("Please select a valid input.")
 
+    def minimax_max(self, alpha, beta, depth, coords):
 
-    def minimax_max(self, alpha, beta, depth):
+        print(depth)
 
+        max_value = -self.infinity
 
+        coord_x, coord_y = coords
 
-            winner = self.check_wins()
+        best_col = -1
 
-            if winner == 'B':
-                return()
+        if alpha >= beta:
+            return (alpha, best_col)
+        
+        winner = self.check_wins(coord_x, coord_y)
+        if winner != None or depth == 0:
+            if winner != None:
+                if winner == "B":
+                    return (-self.infinity + depth, 0)
+                elif winner == "R":
+                    return (self.infinity - depth, 0)
+                elif winner == "_":
+                    return (0, 0)
+            else:
+                return (0, 0)
 
+        
+        for i in range(0, 7):
+            if self.valid_placement(i):
+                
+                x, y = self.place(i)
+
+                (value, min_col) = self.minimax_min(alpha, beta, depth - 1, (x, y))
+
+                if value > max_value:
+                    max_value = value
+                    best_col = i
+
+                self.grid[x][y] = "_"
+
+                if max_value > alpha:
+                    alpha = max_value
+                
+        return (alpha, best_col)
+    
+    def minimax_min(self, alpha, beta, depth, coords):
+
+        min_value = self.infinity
+
+        coord_x, coord_y = coords
+
+        best_col = -1
+
+        if alpha >= beta:
+            return (alpha, best_col)
+        
+        winner = self.check_wins(coord_x, coord_y)
+
+        if winner != None or depth == 0:
+            if winner != None:
+                if winner == "B":
+                    return (-self.infinity + depth, 0)
+                elif winner == "R":
+                    return (self.infinity - depth, 0)
+                elif winner == "_":
+                    return (0, 0)
+            else:
+                return (0, 0)
+        
+        for i in range(0, 7):
+            if self.valid_placement(i):
+                x, y = self.place(i)
+
+                (value, max_col) = self.minimax_max(alpha, beta, depth - 1, (x, y))
+
+                if value < min_value:
+                    max_value = value
+                    best_col = i
+
+                self.grid[x][y] = "_"
+
+                if min_value < beta:
+                    beta = min_value
+                
+        return (alpha, best_col)
 
     
     def play(self, x=0, y=0):
@@ -90,11 +164,12 @@ class Connect4():
             else:
                 self.turn = "R"
             
-            if self.turn == "R":
+            #get turns
 
+            if self.turn == "B":
                 while(True):
 
-                    col =self.get_input()
+                    col = self.get_input()
 
                     if self.valid_placement(col):
                         x, y = self.place(col)
@@ -102,13 +177,14 @@ class Connect4():
                     else:
                         print("Select a valid column, please.\n")
 
-            elif self.turn == 'B':
+            elif self.turn == 'R':
 
                 while(True):
-                    col = self.get_input()
 
-                    if self.valid_placement(col):
-                        x, y = self.place(col)
+                    (value, max_col) = self.minimax_max(-self.infinity, self.infinity, 1, (0, 0))
+
+                    if self.valid_placement(max_col):
+                        x, y = self.place(max_col)
                         break
                     else:
                         print("Select a valid column, please.\n")
